@@ -26,10 +26,10 @@ https://data.peclet.com.au/explore/dataset/nsw-lga-boundaries/export/
 
 To get all lgas can do
 
-http://localhost:5001/lgas
+http://localhost:5000/lgas
 
 
 To get one LGA for a provided lat and lng can do
-http://127.0.0.1:5001/lga?lat=-29.123&lng=149.694
+http://127.0.0.1:5000/lga?lat=-29.123&lng=149.694
 
 Note the difference between the endpoints `lgas` and `lga`

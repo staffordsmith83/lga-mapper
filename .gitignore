@@ -25,3 +25,4 @@ htmlcov/
 *,cover
 env/*
 __pycache__/*
+credentials.txt
