@@ -38,7 +38,7 @@ def get_lgas():
     cur = conn.cursor()
 
     if request.method == 'GET':
-        sql = """ SELECT lga_name,
+        sql = """ SELECT councilnam,
         ST_AsGeoJSON(ST_Transform(geom,4326)) AS geom
         FROM api.lgas LIMIT 5;  """
 
@@ -52,7 +52,7 @@ def get_lgas():
         return export2geojson(db_rows)
 
 
-
+# The the first LGA that intersects with the provided lat and lng, and return the name and abscode as json.
 @app.route("/lga", methods=['GET'])
 def get_lga():
     database = 'postgres'
@@ -64,7 +64,7 @@ def get_lga():
     lat = args.get('lat')
     lng = args.get('lng')
 
-    sql = f'SELECT lga_name FROM api.lgas WHERE ST_Intersects(geom, ST_SetSRID(ST_MakePoint({lng}, {lat}), 4326)); '
+    sql = f'SELECT councilnam, abscode FROM api.lgas WHERE ST_Intersects(geom, ST_SetSRID(ST_MakePoint({lng}, {lat}), 4326)); '
     'VALUES (%s, %s)',
     (lat, lng)
 
@@ -73,9 +73,13 @@ def get_lga():
     db_rows = cur.fetchall()
     cur.close()
     conn.close()
-    result = db_rows
+    result = {
+        'name': db_rows[0][0],
+        'abscode': db_rows[0][1]
+    }
 
     return result
+
 
 # Modified from https://subscription.packtpub.com/book/big-data-and-business-intelligence/9781783555079/4/ch04lvl1sec34/finding-out-whether-a-point-is-inside-a-polygon
 
