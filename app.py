@@ -80,7 +80,7 @@ def get_lga():
 
     return result
 
-
+# Returns all lgas that intersect with the radius. Radius in km.
 @app.route("/radius", methods=['GET'])
 def get_lgas_radius():
     database = 'postgres'
@@ -91,9 +91,9 @@ def get_lgas_radius():
     args = request.args.to_dict()
     lat = args.get('lat')
     lng = args.get('lng')
-    radius = float(args.get('radius'))
+    radius_in_m = float(args.get('radius')) * 1000
 
-    sql = f"SELECT councilnam, abscode, ST_AsGeoJSON(geom) AS geometry FROM api.lgas WHERE ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint({lng}, {lat}), 4326)::geography, {radius});"
+    sql = f"SELECT councilnam, abscode FROM api.lgas WHERE ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint({lng}, {lat}), 4326)::geography, {radius_in_m});"
 
     cur.execute(sql)
 
@@ -106,7 +106,6 @@ def get_lgas_radius():
         result = {}
         result['councilnam'] = row[0]
         result['abscode'] = str(row[1])
-        result['geometry'] = json.loads(row[2])
         results.append(result)
 
     return jsonify(results)
