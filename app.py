@@ -31,16 +31,16 @@ def get_db_connection(database):
 # DB ENDPOINTS
 ##########################
 
-@app.route("/lgas", methods=['GET'])
-def get_lgas():
+@app.route("/lgacentroids", methods=['GET'])
+def get_lgacentroids():
     database = 'postgres'
     conn = get_db_connection(database)
     cur = conn.cursor()
 
     if request.method == 'GET':
-        sql = """ SELECT councilnam,
-        ST_AsGeoJSON(ST_Transform(geom,4326)) AS geom
-        FROM api.lgas LIMIT 5;  """
+        sql = """ SELECT councilnam, abscode::varchar,
+        ST_AsGeoJSON(ST_Centroid(ST_Transform(geom,4326))) AS centroid
+        FROM api.lgas;  """
 
         cur.execute(sql)
         # return all the rows, we expect more than one
@@ -88,7 +88,7 @@ def export2geojson(db_rows):
     print(db_rows)
     """
     loop through each row in result query set and add to my feature collection
-    assign name field to the GeoJSON properties
+    assign name field and code field to the GeoJSON properties
     :param query_result: pg query set of geometries
     :return: new geojson file
     """
@@ -97,10 +97,11 @@ def export2geojson(db_rows):
 
     for row in db_rows:
         name = row[0]
-        geom = row[1]
-        geoj_geom = loads(geom)
+        code = row[1]
+        centroid = row[2]
+        geoj_geom = loads(centroid)
         myfeat = Feature(geometry=geoj_geom,
-                         properties={'name': name})
+                         properties={'name': name, 'code': code})
         new_geom_collection.append(myfeat)
 
     # use the geojson module to create the final Feature
