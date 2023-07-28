@@ -80,6 +80,36 @@ def get_lga():
 
     return result
 
+# Returns all lgas that intersect with the radius. Radius in km.
+@app.route("/radius", methods=['GET'])
+def get_lgas_radius():
+    database = 'postgres'
+    conn = get_db_connection(database)
+    cur = conn.cursor()
+
+    app.logger.info("Finding LGAs within radius")
+    args = request.args.to_dict()
+    lat = args.get('lat')
+    lng = args.get('lng')
+    radius_in_m = float(args.get('radius')) * 1000
+
+    sql = f"SELECT councilnam, abscode FROM api.lgas WHERE ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint({lng}, {lat}), 4326)::geography, {radius_in_m});"
+
+    cur.execute(sql)
+
+    db_rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    results = []
+    for row in db_rows:
+        result = {}
+        result['councilnam'] = row[0]
+        result['abscode'] = str(row[1])
+        results.append(result)
+
+    return jsonify(results)
+
 
 # Modified from https://subscription.packtpub.com/book/big-data-and-business-intelligence/9781783555079/4/ch04lvl1sec34/finding-out-whether-a-point-is-inside-a-polygon
 
